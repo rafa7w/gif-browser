@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String? _search;
-  final int _offset = 0;
+  int _offset = 0;
 
   Future<Map> _getGifs() async {
     http.Response response;
@@ -22,10 +22,18 @@ class _HomePageState extends State<HomePage> {
           'https://api.giphy.com/v1/gifs/trending?api_key=vXqreGVRMPYwJVnCTP60N6w96hAuURRc&limit=20&rating=g'));
     } else {
       response = await http.get(Uri.parse(
-          'https://api.giphy.com/v1/gifs/search?api_key=vXqreGVRMPYwJVnCTP60N6w96hAuURRc&q=$_search&limit=20&offset=$_offset&rating=g&lang=en'));
+          'https://api.giphy.com/v1/gifs/search?api_key=vXqreGVRMPYwJVnCTP60N6w96hAuURRc&q=$_search&limit=19&offset=$_offset&rating=g&lang=en'));
     }
 
     return json.decode(response.body);
+  }
+
+  int _getCount(List data) {
+    if (_search == null) {
+      return data.length;
+    } else {
+      return data.length + 1;
+    }
   }
 
   Widget _createGifTable(BuildContext context, AsyncSnapshot snapshot) {
@@ -36,15 +44,44 @@ class _HomePageState extends State<HomePage> {
         crossAxisSpacing: 10.0,
         mainAxisSpacing: 10.0,
       ),
-      itemCount: snapshot.data['data'].length,
+      itemCount: _getCount(snapshot.data['data']),
       itemBuilder: (context, index) {
-        return GestureDetector(
-          child: Image.network(
-            snapshot.data['data'][index]['images']['fixed_height']['url'],
-            height: 300.0,
-            fit: BoxFit.cover,
-          ),
-        );
+        if (_search == null || index < snapshot.data['data'].length) {
+          return GestureDetector(
+            child: Image.network(
+              snapshot.data['data'][index]['images']['fixed_height']['url'],
+              height: 300.0,
+              fit: BoxFit.cover,
+            ),
+          );
+        } else {
+          return Container(
+            child: GestureDetector(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 70.0,
+                  ),
+                  Text(
+                    'Carregar mais...',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22.0,
+                    ),
+                  )
+                ],
+              ),
+              onTap: () {
+                setState(() {
+                  _offset += 19;
+                });
+              },
+            ),
+          );
+        }
       },
     );
   }
@@ -85,6 +122,7 @@ class _HomePageState extends State<HomePage> {
               onSubmitted: (text) {
                 setState(() {
                   _search = text;
+                  _offset = 0;
                 });
               },
             ),
