@@ -28,6 +28,27 @@ class _HomePageState extends State<HomePage> {
     return json.decode(response.body);
   }
 
+  Widget _createGifTable(BuildContext context, AsyncSnapshot snapshot) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(10.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10.0,
+        mainAxisSpacing: 10.0,
+      ),
+      itemCount: snapshot.data['data'].length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          child: Image.network(
+            snapshot.data['data'][index]['images']['fixed_height']['url'],
+            height: 300.0,
+            fit: BoxFit.cover,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +103,9 @@ class _HomePageState extends State<HomePage> {
                   default:
                     if (snapshot.hasError) {
                       return Container();
-                    } 
+                    } else {
+                      return _createGifTable(context, snapshot);
+                    }
                 }
               },
             ),
